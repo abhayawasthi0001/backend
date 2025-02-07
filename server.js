@@ -7,7 +7,7 @@ const app = express();
 
 // CORS configuration
 const corsOptions = {
-  origin: "https://abhayawasthi0001.github.io/myapp/", // Replace with your GitHub Pages URL
+  origin: ["https://abhayawasthi0001.github.io/myapp", "http://localhost:3000"], // Allow frontend and localhost
   methods: ["GET", "POST", "DELETE"],
   credentials: true,
 };
@@ -105,6 +105,10 @@ app.get("/todos", async (req, res) => {
     console.error("Error fetching todos:", error);
     res.status(500).json({ error: "Server error. Please try again later." });
   }
+});
+
+app.get("/", (req, res) => {
+  res.send("Backend is running!");
 });
 
 // Delete a todo
