@@ -1,13 +1,20 @@
 require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
-const bodyParser = require("body-parser");
 const cors = require("cors");
 
 const app = express();
 
-app.use(cors());
-app.use(bodyParser.json());
+// CORS configuration
+const corsOptions = {
+  origin: "https://abhayawasthi0001.github.io/myapp/", // Replace with your GitHub Pages URL
+  methods: ["GET", "POST", "DELETE"],
+  credentials: true,
+};
+app.use(cors(corsOptions));
+
+// Express built-in middleware for JSON parsing
+app.use(express.json());
 
 const mongoURI = process.env.MONGO_URI;
 mongoose
@@ -44,7 +51,7 @@ app.post("/signup", async (req, res) => {
       } else {
         return res
           .status(401)
-          .send("Username exists but password is incorrect.");
+          .json({ error: "Username exists but password is incorrect." });
       }
     }
 
@@ -55,10 +62,10 @@ app.post("/signup", async (req, res) => {
     });
 
     await newUser.save();
-    res.status(201).send("User created successfully!");
+    res.status(201).json({ message: "User created successfully!" });
   } catch (error) {
     console.error("Error creating user:", error);
-    res.status(500).send("Server error");
+    res.status(500).json({ error: "Server error. Please try again later." });
   }
 });
 
@@ -69,7 +76,7 @@ app.post("/addTodo", async (req, res) => {
 
     const user = await User.findOne({ name });
     if (!user) {
-      return res.status(404).send("User not found");
+      return res.status(404).json({ error: "User not found" });
     }
 
     const newTodo = { title, data };
@@ -81,7 +88,7 @@ app.post("/addTodo", async (req, res) => {
       .json({ message: "Todo added successfully!", todo: newTodo });
   } catch (error) {
     console.error("Error adding todo:", error);
-    res.status(500).send("Server error");
+    res.status(500).json({ error: "Server error. Please try again later." });
   }
 });
 
@@ -91,12 +98,12 @@ app.get("/todos", async (req, res) => {
     const { name } = req.query;
     const user = await User.findOne({ name });
     if (!user) {
-      return res.status(404).send("User not found");
+      return res.status(404).json({ error: "User not found" });
     }
     res.status(200).json({ todos: user.todos });
   } catch (error) {
     console.error("Error fetching todos:", error);
-    res.status(500).send("Server error");
+    res.status(500).json({ error: "Server error. Please try again later." });
   }
 });
 
@@ -107,13 +114,13 @@ app.delete("/deleteTodo", async (req, res) => {
 
     const user = await User.findOne({ name });
     if (!user) {
-      return res.status(404).send("User not found");
+      return res.status(404).json({ error: "User not found" });
     }
     const todoIndex = user.todos.findIndex(
       (todo) => todo._id.toString() === todoId
     );
     if (todoIndex === -1) {
-      return res.status(404).send("Todo not found");
+      return res.status(404).json({ error: "Todo not found" });
     }
 
     user.todos.splice(todoIndex, 1);
@@ -122,11 +129,11 @@ app.delete("/deleteTodo", async (req, res) => {
     res.status(200).json({ message: "Todo deleted successfully!" });
   } catch (error) {
     console.error("Error deleting todo:", error);
-    res.status(500).send("Server error");
+    res.status(500).json({ error: "Server error. Please try again later." });
   }
 });
 
 const port = process.env.PORT || 5000;
 app.listen(port, () => {
-  console.log(`Server running on http://localhost:${port}`);
+  console.log(`Server running on port ${port}`);
 });
