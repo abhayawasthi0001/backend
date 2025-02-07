@@ -7,9 +7,10 @@ const app = express();
 
 // CORS configuration
 const corsOptions = {
-  origin: ["https://abhayawasthi0001.github.io/myapp", "http://localhost:3000"], // Allow frontend and localhost
+  origin: ["https://abhayawasthi0001.github.io", "http://localhost:3000"], // Allow GitHub Pages and localhost
   methods: ["GET", "POST", "DELETE"],
   credentials: true,
+  allowedHeaders: ["Content-Type", "Authorization"], // Allow necessary headers
 };
 app.use(cors(corsOptions));
 
