@@ -7,10 +7,10 @@ const app = express();
 
 // CORS configuration
 const corsOptions = {
-  origin: ["https://abhayawasthi0001.github.io", "http://localhost:3000"], // Allow GitHub Pages and localhost
+  origin: ["https://abhayawasthi0001.github.io", "http://localhost:3000"],
   methods: ["GET", "POST", "DELETE"],
   credentials: true,
-  allowedHeaders: ["Content-Type", "Authorization"], // Allow necessary headers
+  allowedHeaders: ["Content-Type", "Authorization"],
 };
 app.use(cors(corsOptions));
 
@@ -45,10 +45,10 @@ app.post("/signup", async (req, res) => {
 
     if (existingUser) {
       if (existingUser.password === password) {
-        // Return todos for existing user
+        // Login successful, return todos (or empty array for admin)
         return res
           .status(200)
-          .json({ message: "User already exists!", todos: existingUser.todos });
+          .json({ message: "Login successful!", todos: existingUser.todos });
       } else {
         return res
           .status(401)
@@ -56,6 +56,7 @@ app.post("/signup", async (req, res) => {
       }
     }
 
+    // Create new user if not exists
     const newUser = new User({
       name,
       password,
@@ -63,7 +64,7 @@ app.post("/signup", async (req, res) => {
     });
 
     await newUser.save();
-    res.status(201).json({ message: "User created successfully!" });
+    res.status(201).json({ message: "User created successfully!", todos: [] });
   } catch (error) {
     console.error("Error creating user:", error);
     res.status(500).json({ error: "Server error. Please try again later." });
@@ -108,8 +109,37 @@ app.get("/todos", async (req, res) => {
   }
 });
 
-app.get("/", (req, res) => {
-  res.send("Backend is running!");
+// Fetch all users except admin (admin panel)
+app.get("/admin/users", async (req, res) => {
+  try {
+    const { name, password } = req.query;
+    if (name !== "Abhay Awasthi" || password !== "Abhay7@123") {
+      return res.status(403).json({ error: "Unauthorized access" });
+    }
+    const users = await User.find({ name: { $ne: "Abhay Awasthi" } });
+    res.status(200).json(users);
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    res.status(500).json({ error: "Server error. Please try again later." });
+  }
+});
+
+// Delete a user (admin only)
+app.delete("/admin/deleteUser", async (req, res) => {
+  try {
+    const { name, password, userId } = req.body;
+    if (name !== "Abhay Awasthi" || password !== "Abhay7@123") {
+      return res.status(403).json({ error: "Unauthorized access" });
+    }
+    const user = await User.findByIdAndDelete(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    res.status(200).json({ message: "User deleted successfully!" });
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    res.status(500).json({ error: "Server error. Please try again later." });
+  }
 });
 
 // Delete a todo
